@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Data Haji Balangan</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f7fafc;
+      font-family: "Poppins", sans-serif;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 1.5rem;
+      transition: 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(90deg, #006633, #00994d);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      border-radius: 0 0 20px 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="text-3xl font-bold">📊 Dashboard Data Haji Kabupaten Balangan</h1>
+    <p id="lastUpdate" class="text-sm text-gray-200 mt-1">Memuat data...</p>
+  </div>
+
+  <div class="container mx-auto px-4 py-6">
+    <div class="flex justify-center mb-6">
+      <button id="btnUpdate"
+        class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition">
+        🔄 Update Sekarang
+      </button>
+    </div>
+
+    <div id="statusMsg" class="text-center text-sm text-red-600 mb-4"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="card text-center">
+        <h2 class="text-lg font-semibold text-green-800">Jumlah Jemaah</h2>
+        <p id="jumlahJemaah" class="text-3xl font-bold text-green-600 mt-2">-</p>
+      </div>
+      <div class="card text-center">
+        <h2 class="text-lg font-semibold text-green-800">Lansia</h2>
+        <p id="lansia" class="text-3xl font-bold text-green-600 mt-2">-</p>
+      </div>
+      <div class="card text-center">
+        <h2 class="text-lg font-semibold text-green-800">Update Terakhir</h2>
+        <p id="updateTerakhir" class="text-lg text-gray-700 mt-2">-</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="card">
+        <h2 class="text-center font-semibold text-green-800 mb-2">📘 Berdasarkan Pendidikan</h2>
+        <canvas id="chartPendidikan"></canvas>
+      </div>
+
+      <div class="card">
+        <h2 class="text-center font-semibold text-green-800 mb-2">📆 Berdasarkan Waktu Pendaftaran</h2>
+        <canvas id="chartPendaftaran"></canvas>
+      </div>
+
+      <div class="card">
+        <h2 class="text-center font-semibold text-green-800 mb-2">🧍 Berdasarkan Jenis Kelamin</h2>
+        <canvas id="chartKelamin"></canvas>
+      </div>
+    </div>
+
+    <footer class="text-center mt-10 text-gray-500 text-sm">
+      © 2025 Kemenag Kab. Balangan — Data diambil dari Siskohat DJPHU
+    </footer>
+  </div>
+
+  <script>
+    const jsonURL = "https://raw.githubusercontent.com/plhutbalangan/dashboard/main/static/data_balangan.json?nocache=" + Date.now();
+
+    async function loadData() {
+      try {
+        const res = await fetch(jsonURL);
+        if (!res.ok) throw new Error("File tidak ditemukan!");
+        const data = await res.json();
+
+        document.getElementById("jumlahJemaah").textContent =
+          data.data.Jumlah_Jemaah.data.rows[0][0].toLocaleString("id-ID");
+        document.getElementById("lansia").textContent =
+          data.data.Lansia.data.rows[0][0].toLocaleString("id-ID");
+        document.getElementById("updateTerakhir").textContent = data.update;
+
+        document.getElementById("statusMsg").textContent = "";
+        document.getElementById("lastUpdate").textContent =
+          "📅 Data diperbarui: " + data.update;
+
+        renderCharts(data.data);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("statusMsg").textContent =
+          "⚠️ Gagal memuat data: " + err.message;
+      }
+    }
+
+    function renderCharts(d) {
+      // Pendidikan
+      const pend = d.Jenis_Kelamin.data.rows.map(r => r[0]);
+      const pendCount = d.Jenis_Kelamin.data.rows.map(r => r[1]);
+      new Chart(document.getElementById("chartPendidikan"), {
+        type: "bar",
+        data: {
+          labels: pend,
+          datasets: [{
+            label: "Jumlah",
+            data: pendCount,
+            backgroundColor: "#facc15"
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+
+      // Jenis Kelamin
+      const kel = d.Masa_Tunggu.data.rows.map(r => r[0]);
+      const kelCount = d.Masa_Tunggu.data.rows.map(r => r[1]);
+      new Chart(document.getElementById("chartKelamin"), {
+        type: "pie",
+        data: {
+          labels: kel,
+          datasets: [{
+            data: kelCount,
+            backgroundColor: ["#4ade80", "#60a5fa"]
+          }]
+        },
+        options: { responsive: true }
+      });
+
+      // Waktu Pendaftaran
+      const waktu = d.Pekerjaan.data.rows.slice(-40);
+      const labels = waktu.map(r => new Date(r[0]).toISOString().slice(0, 10));
+      const values = waktu.map(r => r[1]);
+      new Chart(document.getElementById("chartPendaftaran"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Jumlah Daftar",
+            data: values,
+            borderColor: "#16a34a",
+            fill: false,
+            tension: 0.2
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
+
+    document.getElementById("btnUpdate").addEventListener("click", () => {
+      alert("🔄 Update data hanya aktif di versi lokal (pakai server Python).");
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
