@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Data Haji Kabupaten Balangan</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="static/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -19,7 +19,6 @@
   </div>
 
   <main>
-    <!-- ====== 3 Card Utama ====== -->
     <section class="cards">
       <div class="card">
         <h3>Jumlah Jemaah</h3>
@@ -37,7 +36,6 @@
       </div>
     </section>
 
-    <!-- ====== Chart Section ====== -->
     <section class="charts">
       <div class="chart-card">
         <h3>📘 Berdasarkan Pendidikan</h3>
@@ -63,12 +61,11 @@
   <script>
     async function ambilData() {
       try {
-        const res = await fetch("data_balangan.json");
+        const res = await fetch("static/data_balangan.json");
         const data = await res.json();
 
         document.getElementById("last-update").textContent = data.update;
 
-        // Angka utama
         const jumlah = data.data.Jumlah_Jemaah?.data?.rows?.[0]?.[0] ?? "-";
         const lansia = data.data.Lansia?.data?.rows?.[0]?.[0] ?? "-";
         const masaTunggu = data.data.Masa_Tunggu?.data?.rows?.[0]?.[0] ?? "-";
@@ -77,79 +74,64 @@
         document.getElementById("jumlahLansia").textContent = lansia.toLocaleString();
         document.getElementById("masaTunggu").textContent = masaTunggu + " tahun";
 
-        // Grafik Pendidikan
+        // Pendidikan
         const pendidikan = data.data.Pendidikan?.data?.rows || [];
-        const labelsPendidikan = pendidikan.map(row => row[0]);
-        const valuesPendidikan = pendidikan.map(row => row[1]);
-
         new Chart(document.getElementById("chartPendidikan"), {
           type: "bar",
           data: {
-            labels: labelsPendidikan,
+            labels: pendidikan.map(r => r[0]),
             datasets: [{
-              label: "Jumlah",
-              data: valuesPendidikan,
-              backgroundColor: "#f4b400"
+              data: pendidikan.map(r => r[1]),
+              backgroundColor: "#f4b400",
             }]
           },
           options: {
-            responsive: true,
-            plugins: { legend: { display: false } }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
           }
         });
 
-        // Grafik Waktu Pendaftaran
+        // Waktu Pendaftaran
         const waktu = data.data.Pendaftar_Bulanan?.data?.rows || [];
-        const labelsWaktu = waktu.map((_, i) => `Bulan ${i + 1}`);
-        const valuesWaktu = waktu.map(row => row[0]);
-
         new Chart(document.getElementById("chartWaktu"), {
           type: "line",
           data: {
-            labels: labelsWaktu,
+            labels: waktu.map((_, i) => `Bulan ${i + 1}`),
             datasets: [{
-              label: "Jumlah Pendaftar",
-              data: valuesWaktu,
+              data: waktu.map(r => r[0]),
               borderColor: "#0f9d58",
-              fill: false
+              tension: 0.3
             }]
           },
           options: {
-            responsive: true,
-            plugins: { legend: { display: false } }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
           }
         });
 
-        // Grafik Jenis Kelamin
+        // Jenis Kelamin
         const kelamin = data.data.Jenis_Kelamin?.data?.rows || [];
-        const labelsKelamin = kelamin.map(row => row[0]);
-        const valuesKelamin = kelamin.map(row => row[1]);
-
         new Chart(document.getElementById("chartKelamin"), {
           type: "pie",
           data: {
-            labels: labelsKelamin,
+            labels: kelamin.map(r => r[0]),
             datasets: [{
-              data: valuesKelamin,
+              data: kelamin.map(r => r[1]),
               backgroundColor: ["#34a853", "#4285f4"]
             }]
           },
           options: {
-            responsive: true,
             plugins: { legend: { position: "top" } }
           }
         });
+
       } catch (e) {
         alert("⚠️ Gagal memuat data: " + e.message);
       }
     }
 
     ambilData();
-
-    // Tombol update (reload dashboard)
-    document.getElementById("updateButton").addEventListener("click", () => {
-      location.reload();
-    });
+    document.getElementById("updateButton").addEventListener("click", () => location.reload());
   </script>
 </body>
 </html>
