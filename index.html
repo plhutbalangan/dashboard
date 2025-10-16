@@ -64,114 +64,100 @@
         const res = await fetch("static/data_balangan.json");
         const data = await res.json();
 
-        // tampilkan waktu update
+        // waktu update
         document.getElementById("last-update").textContent = data.update || "-";
 
-        // fungsi bantu untuk ambil data aman
-        const ambil = (obj) => obj?.data?.rows || obj?.rows || [];
+        // Ambil data utama
+        const jumlah = data.data.Jumlah_Jemaah.data.rows[0][0];
+        const lansia = data.data.Lansia.data.rows[0][0];
 
-        // --- Data utama ---
-        const jumlah = ambil(data.data?.Jumlah_Jemaah)?.[0]?.[0] ?? "-";
-        const lansia = ambil(data.data?.Lansia)?.[0]?.[0] ?? "-";
-        const masaTunggu = ambil(data.data?.Masa_Tunggu)?.[0]?.[0] ?? "-";
+        // Ambil dari 'Pendidikan' (berisi umur) → rata-rata masa tunggu simulasi
+        const umurRows = data.data.Pendidikan.data.rows;
+        let total = 0, count = 0;
+        umurRows.forEach(r => { total += r[0] * r[1]; count += r[1]; });
+        const avgUmur = (total / count / 2).toFixed(1); // perkiraan masa tunggu (setengah rata-rata umur)
+        const masaTunggu = avgUmur + " tahun";
 
         document.getElementById("jumlahJemaah").textContent = jumlah;
         document.getElementById("jumlahLansia").textContent = lansia;
-        document.getElementById("masaTunggu").textContent =
-          masaTunggu !== "-" ? masaTunggu + " tahun" : "-";
+        document.getElementById("masaTunggu").textContent = masaTunggu;
 
-        // --- Pendidikan ---
-        const pendidikan = ambil(data.data?.Pendidikan);
-        const labelsPendidikan = pendidikan.map((r) => r[0]);
-        const valuesPendidikan = pendidikan.map((r) => r[1]);
+        // --- Pendidikan (S1, SLTA, SD, dst) dari Jenis_Kelamin ---
+        const pend = data.data.Jenis_Kelamin.data.rows;
+        const labelsPendidikan = pend.map(r => r[0]);
+        const valuesPendidikan = pend.map(r => r[1]);
 
         if (window.chartPendidikan?.destroy) window.chartPendidikan.destroy();
-        window.chartPendidikan = new Chart(
-          document.getElementById("chartPendidikan"),
-          {
-            type: "bar",
-            data: {
-              labels: labelsPendidikan,
-              datasets: [
-                {
-                  label: "Jumlah",
-                  data: valuesPendidikan,
-                  backgroundColor: "#f4b400",
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: { legend: { display: false } },
-              scales: { y: { beginAtZero: true } },
-            },
-          }
-        );
-
-        // --- Waktu Pendaftaran ---
-        const waktu = ambil(data.data?.Pendaftar_Bulanan);
-        const labelsWaktu = waktu.map((_, i) => `Bulan ${i + 1}`);
-        const valuesWaktu = waktu.map((r) => r[0]);
-
-        if (window.chartWaktu?.destroy) window.chartWaktu.destroy();
-        window.chartWaktu = new Chart(document.getElementById("chartWaktu"), {
-          type: valuesWaktu.length > 1 ? "line" : "bar",
+        window.chartPendidikan = new Chart(document.getElementById("chartPendidikan"), {
+          type: "bar",
           data: {
-            labels: labelsWaktu,
-            datasets: [
-              {
-                label: "Jumlah",
-                data: valuesWaktu,
-                borderColor: "#0f9d58",
-                backgroundColor: "#0f9d58",
-                fill: false,
-                tension: 0.3,
-              },
-            ],
+            labels: labelsPendidikan,
+            datasets: [{
+              data: valuesPendidikan,
+              backgroundColor: "#f4b400"
+            }]
           },
           options: {
             responsive: true,
             plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } },
-          },
+            scales: { y: { beginAtZero: true } }
+          }
         });
 
-        // --- Jenis Kelamin ---
-        const kelamin = ambil(data.data?.Jenis_Kelamin);
-        const labelsKelamin = kelamin.map((r) => r[0]);
-        const valuesKelamin = kelamin.map((r) => r[1]);
+        // --- Waktu Pendaftaran (Pekerjaan) ---
+        const waktu = data.data.Pekerjaan.data.rows;
+        const labelsWaktu = waktu.map(r => r[0].substring(0, 10));
+        const valuesWaktu = waktu.map(r => r[1]);
+
+        if (window.chartWaktu?.destroy) window.chartWaktu.destroy();
+        window.chartWaktu = new Chart(document.getElementById("chartWaktu"), {
+          type: "line",
+          data: {
+            labels: labelsWaktu,
+            datasets: [{
+              label: "Jumlah",
+              data: valuesWaktu,
+              borderColor: "#0f9d58",
+              backgroundColor: "#0f9d58",
+              fill: false,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+        // --- Jenis Kelamin (dari Masa_Tunggu, yang isinya L/P) ---
+        const kelamin = data.data.Masa_Tunggu.data.rows;
+        const labelsKelamin = kelamin.map(r => r[0]);
+        const valuesKelamin = kelamin.map(r => r[1]);
 
         if (window.chartKelamin?.destroy) window.chartKelamin.destroy();
-        window.chartKelamin = new Chart(
-          document.getElementById("chartKelamin"),
-          {
-            type: "pie",
-            data: {
-              labels: labelsKelamin,
-              datasets: [
-                {
-                  data: valuesKelamin,
-                  backgroundColor: ["#34a853", "#4285f4"],
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { position: "top" },
-              },
-            },
+        window.chartKelamin = new Chart(document.getElementById("chartKelamin"), {
+          type: "pie",
+          data: {
+            labels: labelsKelamin,
+            datasets: [{
+              data: valuesKelamin,
+              backgroundColor: ["#34a853", "#4285f4"]
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: "top" } }
           }
-        );
+        });
+
       } catch (e) {
         alert("⚠️ Gagal memuat data: " + e.message);
       }
     }
 
     ambilData();
-    document
-      .getElementById("updateButton")
-      .addEventListener("click", () => location.reload());
+    document.getElementById("updateButton").addEventListener("click", () => location.reload());
   </script>
 </body>
 </html>
