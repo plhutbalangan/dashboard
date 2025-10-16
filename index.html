@@ -3,161 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Data Haji Kabupaten Balangan</title>
-  <link rel="stylesheet" href="static/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Dashboard Data Haji Balangan</title>
+  <link href="style.css" rel="stylesheet" />
 </head>
-
 <body>
-  <header>
-    <h1>📊 Dashboard Data Haji Kabupaten Balangan</h1>
-    <p class="update-info">📅 Data diperbarui: <span id="last-update">Memuat...</span></p>
-  </header>
+  <div class="container">
+    <header>
+      <h1>📊 Dashboard Data Haji Kabupaten Balangan</h1>
+      <p id="update-info">Memuat data...</p>
+    </header>
 
-  <div class="update-section">
-    <button id="updateButton">🔄 Update Sekarang</button>
-  </div>
-
-  <main>
     <section class="cards">
       <div class="card">
-        <h3>Jumlah Jemaah</h3>
-        <p id="jumlahJemaah">-</p>
+        <h2>Jumlah Jemaah</h2>
+        <p id="jumlah_jemaah">...</p>
       </div>
 
       <div class="card">
-        <h3>Lansia</h3>
-        <p id="jumlahLansia">-</p>
+        <h2>Lansia</h2>
+        <p id="lansia">...</p>
       </div>
 
+      <!-- 🔁 Kolom baru: Masa Tunggu -->
       <div class="card">
-        <h3>Masa Tunggu</h3>
-        <p id="masaTunggu">-</p>
+        <h2>Masa Tunggu</h2>
+        <p id="masa_tunggu">...</p>
       </div>
     </section>
 
     <section class="charts">
-      <div class="chart-card">
-        <h3>📘 Berdasarkan Pendidikan</h3>
+      <div class="chart-container">
+        <h3>Pendidikan Jemaah</h3>
         <canvas id="chartPendidikan"></canvas>
       </div>
-
-      <div class="chart-card">
-        <h3>📗 Berdasarkan Waktu Pendaftaran</h3>
-        <canvas id="chartWaktu"></canvas>
+      <div class="chart-container">
+        <h3>Pekerjaan Jemaah</h3>
+        <canvas id="chartPekerjaan"></canvas>
       </div>
-
-      <div class="chart-card">
-        <h3>📙 Berdasarkan Jenis Kelamin</h3>
-        <canvas id="chartKelamin"></canvas>
+      <div class="chart-container">
+        <h3>Kelompok Umur</h3>
+        <canvas id="chartUmur"></canvas>
       </div>
     </section>
-  </main>
 
-  <footer>
-    <p>© 2025 Kemenag Kab. Balangan — Data diambil dari Siskohat DJPHU</p>
-  </footer>
+    <footer>
+      <p>Data sumber: <strong>SISKOHAT Kemenag RI</strong> | Otomatis diperbarui lokal setiap startup</p>
+    </footer>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    async function ambilData() {
-      try {
-        const res = await fetch("static/data_balangan.json");
-        const data = await res.json();
+  async function loadData() {
+    try {
+      const response = await fetch("static/data_balangan.json");
+      const jsonData = await response.json();
 
-        // waktu update
-        document.getElementById("last-update").textContent = data.update || "-";
+      // Tanggal update
+      document.getElementById("update-info").innerText = 
+        "Diperbarui: " + jsonData.update;
 
-        // Ambil data utama
-        const jumlah = data.data.Jumlah_Jemaah.data.rows[0][0];
-        const lansia = data.data.Lansia.data.rows[0][0];
+      // Data utama
+      document.getElementById("jumlah_jemaah").innerText =
+        jsonData.data.Jumlah_Jemaah.data.rows[0][0].toLocaleString("id-ID");
 
-        // Ambil dari 'Pendidikan' (berisi umur) → rata-rata masa tunggu simulasi
-        const umurRows = data.data.Pendidikan.data.rows;
-        let total = 0, count = 0;
-        umurRows.forEach(r => { total += r[0] * r[1]; count += r[1]; });
-        const avgUmur = (total / count / 2).toFixed(1); // perkiraan masa tunggu (setengah rata-rata umur)
-        const masaTunggu = avgUmur + " tahun";
+      document.getElementById("lansia").innerText =
+        jsonData.data.Lansia.data.rows[0][0].toLocaleString("id-ID");
 
-        document.getElementById("jumlahJemaah").textContent = jumlah;
-        document.getElementById("jumlahLansia").textContent = lansia;
-        document.getElementById("masaTunggu").textContent = masaTunggu;
+      // 🔁 Data Masa Tunggu
+      const tunggu = jsonData.data.Masa_Tunggu.data.rows[0][0];
+      document.getElementById("masa_tunggu").innerText = tunggu + " Tahun";
 
-        // --- Pendidikan (S1, SLTA, SD, dst) dari Jenis_Kelamin ---
-        const pend = data.data.Jenis_Kelamin.data.rows;
-        const labelsPendidikan = pend.map(r => r[0]);
-        const valuesPendidikan = pend.map(r => r[1]);
+      // Chart Pendidikan
+      const pendidikan = jsonData.data.Pekerjaan.data.rows;
+      new Chart(document.getElementById("chartPendidikan"), {
+        type: "bar",
+        data: {
+          labels: pendidikan.map(r => r[0]),
+          datasets: [{
+            label: "Jumlah Jemaah",
+            data: pendidikan.map(r => r[1])
+          }]
+        }
+      });
 
-        if (window.chartPendidikan?.destroy) window.chartPendidikan.destroy();
-        window.chartPendidikan = new Chart(document.getElementById("chartPendidikan"), {
-          type: "bar",
-          data: {
-            labels: labelsPendidikan,
-            datasets: [{
-              data: valuesPendidikan,
-              backgroundColor: "#f4b400"
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
-          }
-        });
+      // Chart Pekerjaan
+      const kerja = jsonData.data.Jenis_Kelamin.data.rows;
+      new Chart(document.getElementById("chartPekerjaan"), {
+        type: "pie",
+        data: {
+          labels: kerja.map(r => r[0]),
+          datasets: [{
+            label: "Jumlah Jemaah",
+            data: kerja.map(r => r[1])
+          }]
+        }
+      });
 
-        // --- Waktu Pendaftaran (Pekerjaan) ---
-        const waktu = data.data.Pekerjaan.data.rows;
-        const labelsWaktu = waktu.map(r => r[0].substring(0, 10));
-        const valuesWaktu = waktu.map(r => r[1]);
+      // Chart Umur
+      const umur = jsonData.data.Kelompok_Umur.data.rows;
+      new Chart(document.getElementById("chartUmur"), {
+        type: "line",
+        data: {
+          labels: umur.map(r => r[0] + " thn"),
+          datasets: [{
+            label: "Jumlah Jemaah",
+            data: umur.map(r => r[1])
+          }]
+        }
+      });
 
-        if (window.chartWaktu?.destroy) window.chartWaktu.destroy();
-        window.chartWaktu = new Chart(document.getElementById("chartWaktu"), {
-          type: "line",
-          data: {
-            labels: labelsWaktu,
-            datasets: [{
-              label: "Jumlah",
-              data: valuesWaktu,
-              borderColor: "#0f9d58",
-              backgroundColor: "#0f9d58",
-              fill: false,
-              tension: 0.3
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
-          }
-        });
-
-        // --- Jenis Kelamin (dari Masa_Tunggu, yang isinya L/P) ---
-        const kelamin = data.data.Masa_Tunggu.data.rows;
-        const labelsKelamin = kelamin.map(r => r[0]);
-        const valuesKelamin = kelamin.map(r => r[1]);
-
-        if (window.chartKelamin?.destroy) window.chartKelamin.destroy();
-        window.chartKelamin = new Chart(document.getElementById("chartKelamin"), {
-          type: "pie",
-          data: {
-            labels: labelsKelamin,
-            datasets: [{
-              data: valuesKelamin,
-              backgroundColor: ["#34a853", "#4285f4"]
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: "top" } }
-          }
-        });
-
-      } catch (e) {
-        alert("⚠️ Gagal memuat data: " + e.message);
-      }
+    } catch (error) {
+      document.getElementById("update-info").innerText = "Gagal memuat data.";
+      console.error("Error:", error);
     }
+  }
 
-    ambilData();
-    document.getElementById("updateButton").addEventListener("click", () => location.reload());
+  loadData();
   </script>
 </body>
 </html>
