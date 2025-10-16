@@ -1,0 +1,116 @@
+/* === RESET & FONTS === */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(to bottom, #eaf6ff, #ffffff);
+  color: #222;
+}
+
+h1, h2, h3 {
+  margin: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* === HEADER === */
+header {
+  background-color: #057a55;
+  color: white;
+  text-align: center;
+  padding: 20px 10px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+#update-info {
+  font-size: 0.9rem;
+  color: #e0f7ef;
+  margin-top: 5px;
+}
+
+/* === CARD SECTION === */
+.cards {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  width: 260px;
+  text-align: center;
+  padding: 1.5rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #057a55;
+}
+
+.card p {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #1a8754;
+  margin-top: 0.5rem;
+}
+
+/* === CHART SECTION === */
+.charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.chart-container {
+  background: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container h3 {
+  font-size: 1rem;
+  text-align: center;
+  color: #057a55;
+  margin-bottom: 0.8rem;
+}
+
+canvas {
+  width: 100% !important;
+  height: 300px !important;
+}
+
+/* === FOOTER === */
+footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #555;
+  padding: 15px;
+  margin-top: 2rem;
+  background-color: #057a55;
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
