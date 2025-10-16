@@ -64,98 +64,114 @@
         const res = await fetch("static/data_balangan.json");
         const data = await res.json();
 
+        // tampilkan waktu update
         document.getElementById("last-update").textContent = data.update || "-";
 
-        // Ambil nilai utama dari berbagai struktur JSON
-        const getValue = (obj, path) => {
-          try {
-            return path.split(".").reduce((o, k) => (o ? o[k] : undefined), obj);
-          } catch {
-            return undefined;
-          }
-        };
+        // fungsi bantu untuk ambil data aman
+        const ambil = (obj) => obj?.data?.rows || obj?.rows || [];
 
-        const jumlah = getValue(data, "data.Jumlah_Jemaah.data.rows.0.0") ??
-                       getValue(data, "data.Jumlah_Jemaah.rows.0.0") ?? "-";
-        const lansia = getValue(data, "data.Lansia.data.rows.0.0") ??
-                       getValue(data, "data.Lansia.rows.0.0") ?? "-";
-        const masaTunggu = getValue(data, "data.Masa_Tunggu.data.rows.0.0") ??
-                           getValue(data, "data.Masa_Tunggu.rows.0.0") ?? "-";
+        // --- Data utama ---
+        const jumlah = ambil(data.data?.Jumlah_Jemaah)?.[0]?.[0] ?? "-";
+        const lansia = ambil(data.data?.Lansia)?.[0]?.[0] ?? "-";
+        const masaTunggu = ambil(data.data?.Masa_Tunggu)?.[0]?.[0] ?? "-";
 
         document.getElementById("jumlahJemaah").textContent = jumlah;
         document.getElementById("jumlahLansia").textContent = lansia;
         document.getElementById("masaTunggu").textContent =
           masaTunggu !== "-" ? masaTunggu + " tahun" : "-";
 
-        // ======== Pendidikan ========
-        const pendidikan = getValue(data, "data.Pendidikan.data.rows") ??
-                           getValue(data, "data.Pendidikan.rows") ?? [];
-        const labelsPendidikan = pendidikan.map(r => String(r[0]));
-        const valuesPendidikan = pendidikan.map(r => Number(r[1]));
+        // --- Pendidikan ---
+        const pendidikan = ambil(data.data?.Pendidikan);
+        const labelsPendidikan = pendidikan.map((r) => r[0]);
+        const valuesPendidikan = pendidikan.map((r) => r[1]);
 
-        if (window.chartPendidikan && typeof window.chartPendidikan.destroy === "function") window.chartPendidikan.destroy();
-        window.chartPendidikan = new Chart(document.getElementById("chartPendidikan"), {
-          type: "bar",
-          data: {
-            labels: labelsPendidikan,
-            datasets: [{
-              label: "Jumlah",
-              data: valuesPendidikan,
-              backgroundColor: "#f4b400",
-            }]
-          },
-          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
+        if (window.chartPendidikan?.destroy) window.chartPendidikan.destroy();
+        window.chartPendidikan = new Chart(
+          document.getElementById("chartPendidikan"),
+          {
+            type: "bar",
+            data: {
+              labels: labelsPendidikan,
+              datasets: [
+                {
+                  label: "Jumlah",
+                  data: valuesPendidikan,
+                  backgroundColor: "#f4b400",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true } },
+            },
+          }
+        );
 
-        // ======== Waktu Pendaftaran ========
-        const waktu = getValue(data, "data.Pendaftar_Bulanan.data.rows") ??
-                      getValue(data, "data.Pendaftar_Bulanan.rows") ?? [];
+        // --- Waktu Pendaftaran ---
+        const waktu = ambil(data.data?.Pendaftar_Bulanan);
         const labelsWaktu = waktu.map((_, i) => `Bulan ${i + 1}`);
-        const valuesWaktu = waktu.map(r => Number(r[0]));
+        const valuesWaktu = waktu.map((r) => r[0]);
 
-        if (window.chartWaktu && typeof window.chartWaktu.destroy === "function") window.chartWaktu.destroy();
+        if (window.chartWaktu?.destroy) window.chartWaktu.destroy();
         window.chartWaktu = new Chart(document.getElementById("chartWaktu"), {
           type: valuesWaktu.length > 1 ? "line" : "bar",
           data: {
             labels: labelsWaktu,
-            datasets: [{
-              label: "Jumlah",
-              data: valuesWaktu,
-              borderColor: "#0f9d58",
-              backgroundColor: "#0f9d58",
-              fill: false,
-              tension: 0.3,
-            }]
+            datasets: [
+              {
+                label: "Jumlah",
+                data: valuesWaktu,
+                borderColor: "#0f9d58",
+                backgroundColor: "#0f9d58",
+                fill: false,
+                tension: 0.3,
+              },
+            ],
           },
-          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } },
+          },
         });
 
-        // ======== Jenis Kelamin ========
-        const kelamin = getValue(data, "data.Jenis_Kelamin.data.rows") ??
-                        getValue(data, "data.Jenis_Kelamin.rows") ?? [];
-        const labelsKelamin = kelamin.map(r => r[0]);
-        const valuesKelamin = kelamin.map(r => r[1]);
+        // --- Jenis Kelamin ---
+        const kelamin = ambil(data.data?.Jenis_Kelamin);
+        const labelsKelamin = kelamin.map((r) => r[0]);
+        const valuesKelamin = kelamin.map((r) => r[1]);
 
-        if (window.chartKelamin && typeof window.chartKelamin.destroy === "function") window.chartKelamin.destroy();
-        window.chartKelamin = new Chart(document.getElementById("chartKelamin"), {
-          type: "pie",
-          data: {
-            labels: labelsKelamin,
-            datasets: [{
-              data: valuesKelamin,
-              backgroundColor: ["#34a853", "#4285f4"],
-            }]
-          },
-          options: { responsive: true, plugins: { legend: { position: "top" } } }
-        });
-
+        if (window.chartKelamin?.destroy) window.chartKelamin.destroy();
+        window.chartKelamin = new Chart(
+          document.getElementById("chartKelamin"),
+          {
+            type: "pie",
+            data: {
+              labels: labelsKelamin,
+              datasets: [
+                {
+                  data: valuesKelamin,
+                  backgroundColor: ["#34a853", "#4285f4"],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: "top" },
+              },
+            },
+          }
+        );
       } catch (e) {
         alert("⚠️ Gagal memuat data: " + e.message);
       }
     }
 
     ambilData();
-    document.getElementById("updateButton").addEventListener("click", () => location.reload());
+    document
+      .getElementById("updateButton")
+      .addEventListener("click", () => location.reload());
   </script>
 </body>
 </html>
