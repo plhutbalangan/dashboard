@@ -4,45 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Data Haji Kabupaten Balangan</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  // grafik jenis kelamin
-const gender = json.data.Pendidikan.data.rows;
-new Chart(document.getElementById("chartGender"), {
-  type: "pie",
-  data: {
-    labels: gender.map(r => r[0]),
-    datasets: [{
-      data: gender.map(r => r[1]),
-      backgroundColor: ["#2a9d8f", "#f4a261", "#e9c46a", "#264653", "#8ab17d"]
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
-        labels: {
-          font: { size: 12 }
-        }
-      },
-      datalabels: {
-        color: "#fff",
-        font: {
-          weight: "bold",
-          size: 14
-        },
-        formatter: (value, context) => {
-          // Tampilkan angka (misal "2524")
-          return value.toLocaleString();
-        }
-      },
-      tooltip: { enabled: true }
-    }
-  },
-  plugins: [ChartDataLabels]
-});
 
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Chart.js & Plugin Datalabels -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
 
 <body>
@@ -52,7 +20,7 @@ new Chart(document.getElementById("chartGender"), {
   </header>
 
   <main class="container">
-    <!-- Cards ringkasan -->
+    <!-- Kartu ringkasan -->
     <section class="cards">
       <div class="card">
         <h2>Jumlah Jemaah</h2>
@@ -68,14 +36,14 @@ new Chart(document.getElementById("chartGender"), {
       </div>
     </section>
 
-    <!-- Filter pilihan tambahan -->
+    <!-- Filter tambahan -->
     <section class="filter-section">
       <h3>Tampilkan Grafik Tambahan</h3>
       <label><input type="checkbox" id="showPekerjaan" checked /> Berdasarkan Pekerjaan</label>
       <label><input type="checkbox" id="showKelompokUmur" checked /> Berdasarkan Kelompok Umur</label>
     </section>
 
-    <!-- Grafik utama -->
+    <!-- Area grafik -->
     <section class="charts">
       <div class="chart-box">
         <h3>Berdasarkan Waktu Pendaftaran</h3>
@@ -100,88 +68,130 @@ new Chart(document.getElementById("chartGender"), {
   </main>
 
   <footer>
-    © 2025 Kemenag Kab. Balangan — Data dari SISKOHAT DJPHU
+    © 2025 Kemenag Kab. Balangan — Data sumber: SISKOHAT DJPHU
   </footer>
 
   <script>
     async function loadData() {
-      const response = await fetch("static/data_balangan.json");
-      const json = await response.json();
+      try {
+        const response = await fetch("static/data_balangan.json");
+        const json = await response.json();
 
-      // update tanggal
-      document.getElementById("lastUpdate").innerText = `Diperbarui: ${json.update}`;
+        // update waktu terakhir
+        document.getElementById("lastUpdate").innerText = `Diperbarui: ${json.update}`;
 
-      // update ringkasan
-      document.getElementById("jumlahJemaah").innerText =
-        json.data.Jumlah_Jemaah.data.rows[0][0].toLocaleString();
-      document.getElementById("lansia").innerText =
-        json.data.Lansia.data.rows[0][0].toLocaleString();
-      document.getElementById("masaTunggu").innerText =
-        json.data.Masa_Tunggu.data.rows[0][0] + " Tahun";
+        // isi kartu ringkasan
+        document.getElementById("jumlahJemaah").innerText =
+          json.data.Jumlah_Jemaah.data.rows[0][0].toLocaleString();
+        document.getElementById("lansia").innerText =
+          json.data.Lansia.data.rows[0][0].toLocaleString();
+        document.getElementById("masaTunggu").innerText =
+          json.data.Masa_Tunggu.data.rows[0][0] + " Tahun";
 
-      // grafik waktu pendaftaran
-      const waktu = json.data.Pekerjaan.data.rows;
-      new Chart(document.getElementById("chartWaktu"), {
-        type: "line",
-        data: {
-          labels: waktu.map(r => r[0].slice(0, 10)),
-          datasets: [{
-            label: "Jumlah Jemaah",
-            data: waktu.map(r => r[1]),
-            borderColor: "#0b7a4b",
-            backgroundColor: "rgba(11,122,75,0.2)",
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
+        // GRAFIK 1 — Waktu Pendaftaran
+        const waktu = json.data.Pekerjaan.data.rows;
+        new Chart(document.getElementById("chartWaktu"), {
+          type: "line",
+          data: {
+            labels: waktu.map(r => r[0].slice(0, 10)),
+            datasets: [{
+              label: "Jumlah Jemaah",
+              data: waktu.map(r => r[1]),
+              borderColor: "#0b7a4b",
+              backgroundColor: "rgba(11,122,75,0.2)",
+              fill: true,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
 
-      // grafik jenis kelamin
-      const gender = json.data.Pendidikan.data.rows;
-      new Chart(document.getElementById("chartGender"), {
-        type: "pie",
-        data: {
-          labels: gender.map(r => r[0]),
-          datasets: [{
-            data: gender.map(r => r[1]),
-            backgroundColor: ["#2a9d8f", "#e9c46a", "#f4a261", "#264653", "#457b9d"]
-          }]
-        }
-      });
+        // GRAFIK 2 — Jenis Kelamin (Pie Chart dengan nilai langsung)
+        const gender = json.data.Pendidikan.data.rows;
+        new Chart(document.getElementById("chartGender"), {
+          type: "pie",
+          data: {
+            labels: gender.map(r => r[0]),
+            datasets: [{
+              data: gender.map(r => r[1]),
+              backgroundColor: ["#2a9d8f", "#f4a261", "#e9c46a", "#264653", "#8ab17d"]
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "top",
+                labels: { font: { size: 12 } }
+              },
+              datalabels: {
+                color: "#fff",
+                font: {
+                  weight: "bold",
+                  size: 14
+                },
+                formatter: (value, context) => {
+                  const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${value.toLocaleString()} (${percentage}%)`;
+                }
+              },
+              tooltip: { enabled: true }
+            }
+          },
+          plugins: [ChartDataLabels]
+        });
 
-      // grafik pekerjaan
-      const pekerjaan = json.data.Jenis_Kelamin.data.rows;
-      new Chart(document.getElementById("chartPekerjaan"), {
-        type: "bar",
-        data: {
-          labels: pekerjaan.map(r => r[0]),
-          datasets: [{
-            label: "Jumlah",
-            data: pekerjaan.map(r => r[1]),
-            backgroundColor: "#e9c46a"
-          }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
+        // GRAFIK 3 — Pekerjaan
+        const pekerjaan = json.data.Jenis_Kelamin.data.rows;
+        new Chart(document.getElementById("chartPekerjaan"), {
+          type: "bar",
+          data: {
+            labels: pekerjaan.map(r => r[0]),
+            datasets: [{
+              label: "Jumlah",
+              data: pekerjaan.map(r => r[1]),
+              backgroundColor: "#e9c46a"
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
 
-      // grafik kelompok umur
-      const umur = json.data.Kelompok_Umur.data.rows;
-      new Chart(document.getElementById("chartUmur"), {
-        type: "bar",
-        data: {
-          labels: umur.map(r => r[0]),
-          datasets: [{
-            label: "Jumlah",
-            data: umur.map(r => r[1]),
-            backgroundColor: "#2a9d8f"
-          }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
+        // GRAFIK 4 — Kelompok Umur
+        const umur = json.data.Kelompok_Umur.data.rows;
+        new Chart(document.getElementById("chartUmur"), {
+          type: "bar",
+          data: {
+            labels: umur.map(r => r[0]),
+            datasets: [{
+              label: "Jumlah",
+              data: umur.map(r => r[1]),
+              backgroundColor: "#2a9d8f"
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+      } catch (err) {
+        console.error("Gagal memuat data:", err);
+      }
     }
 
-    // filter interaktif
+    // Filter interaktif untuk menampilkan / menyembunyikan grafik tambahan
     document.getElementById("showPekerjaan").addEventListener("change", (e) => {
       document.getElementById("boxPekerjaan").style.display = e.target.checked ? "block" : "none";
     });
@@ -193,4 +203,3 @@ new Chart(document.getElementById("chartGender"), {
   </script>
 </body>
 </html>
-
