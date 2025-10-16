@@ -1,78 +1,96 @@
-/* === RESET & FONTS === */
+/* === FONT & BASE === */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600&display=swap");
+
+:root {
+  --primary: #0b7a4b;
+  --accent: #f7c948;
+  --bg: #f5f7fa;
+  --card-bg: #ffffff;
+  --text: #222;
+  --shadow: rgba(0, 0, 0, 0.08);
+}
+
 body {
   margin: 0;
-  font-family: "Poppins", sans-serif;
-  background: linear-gradient(to bottom, #eaf6ff, #ffffff);
-  color: #222;
-}
-
-h1, h2, h3 {
-  margin: 0;
-}
-
-.container {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem;
+  background: var(--bg);
+  font-family: "Inter", "Poppins", sans-serif;
+  color: var(--text);
+  line-height: 1.5;
 }
 
 /* === HEADER === */
 header {
-  background-color: #057a55;
+  background: var(--primary);
   color: white;
   text-align: center;
-  padding: 20px 10px;
-  border-radius: 0 0 12px 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  padding: 1.8rem 1rem;
+  box-shadow: 0 4px 12px var(--shadow);
+  border-bottom: 4px solid var(--accent);
+  animation: fadeInDown 0.6s ease;
 }
 
 header h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-#update-info {
+header small {
+  display: block;
   font-size: 0.9rem;
-  color: #e0f7ef;
-  margin-top: 5px;
+  margin-top: 4px;
+  color: #d9f9e5;
 }
 
 /* === CARD SECTION === */
 .cards {
   display: flex;
   justify-content: center;
-  gap: 1.2rem;
   flex-wrap: wrap;
-  margin-top: 1.5rem;
+  gap: 1.2rem;
+  margin: 2rem auto 1rem;
+  max-width: 1000px;
 }
 
 .card {
-  background: #fff;
-  border-radius: 12px;
-  width: 260px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  width: 270px;
+  padding: 1.2rem 1rem;
   text-align: center;
-  padding: 1.5rem;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 3px 10px var(--shadow);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  background: var(--accent);
 }
 
 .card h2 {
   font-size: 1rem;
   font-weight: 600;
-  color: #057a55;
+  color: var(--primary);
+  margin: 0.5rem 0;
 }
 
 .card p {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #1a8754;
-  margin-top: 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0.3rem 0;
 }
 
 /* === CHART SECTION === */
@@ -80,37 +98,71 @@ header h1 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 1.5rem;
-  margin-top: 2rem;
-  padding-bottom: 2rem;
+  max-width: 1400px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 1rem;
 }
 
 .chart-container {
-  background: #fff;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 3px 12px var(--shadow);
+  padding: 1.2rem;
+  animation: fadeInUp 0.8s ease;
 }
 
 .chart-container h3 {
-  font-size: 1rem;
   text-align: center;
-  color: #057a55;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 1rem;
   margin-bottom: 0.8rem;
-}
-
-canvas {
-  width: 100% !important;
-  height: 300px !important;
 }
 
 /* === FOOTER === */
 footer {
+  background: var(--primary);
+  color: #f2f2f2;
   text-align: center;
-  font-size: 0.8rem;
-  color: #555;
-  padding: 15px;
-  margin-top: 2rem;
-  background-color: #057a55;
-  color: white;
-  border-radius: 12px 12px 0 0;
+  padding: 0.8rem;
+  font-size: 0.85rem;
+  border-top: 4px solid var(--accent);
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.3rem;
+  }
+
+  .card {
+    width: 90%;
+  }
+
+  .charts {
+    grid-template-columns: 1fr;
+  }
 }
