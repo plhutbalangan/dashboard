@@ -64,10 +64,8 @@
         const res = await fetch("static/data_balangan.json");
         const data = await res.json();
 
-        // Tanggal update
         document.getElementById("last-update").textContent = data.update || "-";
 
-        // Ambil angka utama
         const jumlah = data.data?.Jumlah_Jemaah?.data?.rows?.[0]?.[0] ?? "-";
         const lansia = data.data?.Lansia?.data?.rows?.[0]?.[0] ?? "-";
         const masaTunggu =
@@ -85,7 +83,9 @@
         const labelsPendidikan = pendidikan.map(r => String(r[0]));
         const valuesPendidikan = pendidikan.map(r => Number(r[1]));
 
-        if (window.chartPendidikan) window.chartPendidikan.destroy();
+        if (window.chartPendidikan && typeof window.chartPendidikan.destroy === "function") {
+          window.chartPendidikan.destroy();
+        }
         window.chartPendidikan = new Chart(document.getElementById("chartPendidikan"), {
           type: "bar",
           data: {
@@ -108,7 +108,9 @@
         const labelsWaktu = waktu.map((_, i) => `Bulan ${i + 1}`);
         const valuesWaktu = waktu.map(r => Number(r[0]));
 
-        if (window.chartWaktu) window.chartWaktu.destroy();
+        if (window.chartWaktu && typeof window.chartWaktu.destroy === "function") {
+          window.chartWaktu.destroy();
+        }
         window.chartWaktu = new Chart(document.getElementById("chartWaktu"), {
           type: valuesWaktu.length > 1 ? "line" : "bar",
           data: {
@@ -134,7 +136,9 @@
         const labelsKelamin = kelamin.map(r => r[0]);
         const valuesKelamin = kelamin.map(r => r[1]);
 
-        if (window.chartKelamin) window.chartKelamin.destroy();
+        if (window.chartKelamin && typeof window.chartKelamin.destroy === "function") {
+          window.chartKelamin.destroy();
+        }
         window.chartKelamin = new Chart(document.getElementById("chartKelamin"), {
           type: "pie",
           data: {
